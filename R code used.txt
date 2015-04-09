@@ -1,0 +1,33 @@
+# This is the run of the parallel random forest. It did not beat SAS JMP bootstrap forest.
+
+# Remember to set your working directory, install needed libraries, and set seed to 1.
+
+> library("randomForest", lib.loc="~/R/win-library/3.1")
+> library("foreach", lib.loc="~/R/win-library/3.1")
+> library("doParallel", lib.loc="~/R/win-library/3.1")
+
+> model <- read.csv("model.csv")
+> response <- as.factor(model$TARGET_B)
+> predictors <- read.csv('predictors.csv')
+> MyRF <- train(predictors, response, method = "parRF")
+> getTree(MyRF$finalModel)
+> head(MyRF$finalModel$predicted)
+> MyRFresult <- MyRF$finalModel$predicted
+> write.csv(MyRFresult, file = "MyRFresult.csv", row.names = FALSE)
+
+_____
+# This is the run of the SVM and the tuned SVM
+
+> library("e1071", lib.loc="~/R/win-library/3.1")
+> dataframe <- data.frame(x=predictors, y=response)
+> svmfit <- svm(y~., data=dataframe, kernel="radial", gamma=1, cost=1)
+> str(svmfit)
+> write.csv(svmresult, file = "svmresult.csv", row.names = FALSE)
+> head(svmfit$fitted)
+> svmresult <- svmfit$fitted
+> tune.out=tune(svm, y~.,dat=dataframe, kernel="radial", ranges=list(cost=c(0.1,1,10,100,1000),gamma=c(0.5,1,2,3,4)))
+> summary(tune.out)
+ #best performance found is cost 100, gamma 0.5
+> svmfit <- svm(y~., data=dataframe, kernel="radial", gamma=.5, cost=100)
+> tunedsvmresult <- svmfit$fitted
+> write.csv(tunedsvmresult, file = "tunedsvmresult.csv", row.names = FALSE)
